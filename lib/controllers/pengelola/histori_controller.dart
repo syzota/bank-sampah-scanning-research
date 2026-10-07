@@ -5,9 +5,9 @@ import 'package:excel/excel.dart' as excel;
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../../core/services/supabase_service.dart';
+import '../../core/services/local_data_service.dart';
 import '../../core/services/session_service.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/constants/data_tables.dart';
 import '../../core/utils/format_helper.dart';
 import '../../models/pengelolaan_sampah_model.dart';
 import '../../models/kategori_model.dart';
@@ -138,8 +138,8 @@ class HistoriController extends GetxController {
 
     isLoading.value = true;
     try {
-      var query = SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaanSampah)
+      var query = LocalDataService.client
+          .from(DataTables.tablePengelolaanSampah)
           .select('''
             *,
             kategori_sampah(*),
@@ -190,8 +190,8 @@ class HistoriController extends GetxController {
 
   Future<void> _fetchKategori() async {
     try {
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tableKategoriSampah)
+      final data = await LocalDataService.client
+          .from(DataTables.tableKategoriSampah)
           .select()
           .eq('is_active', true)
           .order('nama');
@@ -204,8 +204,8 @@ class HistoriController extends GetxController {
     final bankSampahId = SessionService.to.activeBankSampahIdOrNull;
     if (bankSampahId == null) return;
     try {
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaanSampah)
+      final data = await LocalDataService.client
+          .from(DataTables.tablePengelolaanSampah)
           .select('nama_nasabah')
           .eq('bank_sampah_id', bankSampahId);
 
@@ -282,8 +282,8 @@ class HistoriController extends GetxController {
     if (confirm != true) return;
 
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaanSampah)
+      await LocalDataService.client
+          .from(DataTables.tablePengelolaanSampah)
           .delete()
           .eq('id', data.id);
       _rawHistori.removeWhere((e) => e.id == data.id);

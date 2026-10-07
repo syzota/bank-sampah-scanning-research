@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/services/local_errors.dart';
 
-import '../../core/services/supabase_service.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/services/local_data_service.dart';
+import '../../core/constants/data_tables.dart';
 import '../../models/kategori_model.dart';
 import '../../models/sub_kategori_model.dart';
 import '../../models/tipe_sampah_model.dart';
@@ -123,8 +123,8 @@ class MasterSampahController extends GetxController {
   }
 
   Future<void> _fetchKategori() async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableKategoriSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tableKategoriSampah)
         .select()
         .order('urutan');
     listKategori.value =
@@ -133,8 +133,8 @@ class MasterSampahController extends GetxController {
   }
 
   Future<void> _fetchSubKategori() async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableSubKategoriSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tableSubKategoriSampah)
         .select('*, kategori_sampah(*)')
         .order('urutan');
     listSubKategori.value =
@@ -142,8 +142,8 @@ class MasterSampahController extends GetxController {
   }
 
   Future<void> _fetchTipe() async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableTipeSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tableTipeSampah)
         .select('*, sub_kategori_sampah(*)')
         .order('urutan');
     listTipe.value =
@@ -151,8 +151,8 @@ class MasterSampahController extends GetxController {
   }
 
   Future<void> _fetchJenis() async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableJenisSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tableJenisSampah)
         .select('*, sub_kategori_sampah(*, kategori_sampah(*)), tipe_sampah(*), kategori_sampah(*), satuan(*)')
         .order('urutan');
     listJenis.value =
@@ -160,8 +160,8 @@ class MasterSampahController extends GetxController {
   }
 
   Future<void> _fetchSatuan() async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableSatuan)
+    final data = await LocalDataService.client
+        .from(DataTables.tableSatuan)
         .select()
         .order('nama');
     listSatuan.value =
@@ -178,8 +178,8 @@ class MasterSampahController extends GetxController {
       }
       return;
     }
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableSubKategoriSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tableSubKategoriSampah)
         .select()
         .eq('kategori_id', selectedKategoriForm.value!.id)
         .order('urutan');
@@ -231,8 +231,8 @@ class MasterSampahController extends GetxController {
       }
       return;
     }
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableTipeSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tableTipeSampah)
         .select()
         .eq('sub_kategori_id', selectedSubKategoriForm.value!.id)
         .order('urutan');
@@ -333,8 +333,8 @@ class MasterSampahController extends GetxController {
     if (!formKey.currentState!.validate() || editingId.value == null) return;
     isSaving.value = true;
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableKategoriSampah)
+      await LocalDataService.client
+          .from(DataTables.tableKategoriSampah)
           .update({
         'nama': namaController.text.trim(),
         'deskripsi': deskripsiController.text.trim().isEmpty
@@ -361,8 +361,8 @@ class MasterSampahController extends GetxController {
     }
     isSaving.value = true;
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableSubKategoriSampah)
+      await LocalDataService.client
+          .from(DataTables.tableSubKategoriSampah)
           .update({
         'kategori_id': selectedKategoriForm.value!.id,
         'nama': namaController.text.trim(),
@@ -390,8 +390,8 @@ class MasterSampahController extends GetxController {
     }
     isSaving.value = true;
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableTipeSampah)
+      await LocalDataService.client
+          .from(DataTables.tableTipeSampah)
           .update({
         'sub_kategori_id': selectedSubKategoriForm.value!.id,
         'nama': namaController.text.trim(),
@@ -415,8 +415,8 @@ class MasterSampahController extends GetxController {
     if (!formKey.currentState!.validate() || editingId.value == null) return;
     isSaving.value = true;
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableJenisSampah)
+      await LocalDataService.client
+          .from(DataTables.tableJenisSampah)
           .update({
         'sub_kategori_id': selectedSubKategoriForm.value?.id,
         'tipe_id':         selectedTipeForm.value?.id,
@@ -443,8 +443,8 @@ class MasterSampahController extends GetxController {
     if (!formKey.currentState!.validate() || editingId.value == null) return;
     isSaving.value = true;
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableSatuan)
+      await LocalDataService.client
+          .from(DataTables.tableSatuan)
           .update({
         'nama':      namaController.text.trim(),
         'singkatan': singkatanController.text.trim(),
@@ -467,8 +467,8 @@ class MasterSampahController extends GetxController {
     if (!formKey.currentState!.validate()) return;
     isSaving.value = true;
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableKategoriSampah)
+      await LocalDataService.client
+          .from(DataTables.tableKategoriSampah)
           .insert({
         'nama': namaController.text.trim(),
         'deskripsi': deskripsiController.text.trim().isEmpty
@@ -494,8 +494,8 @@ class MasterSampahController extends GetxController {
     }
     isSaving.value = true;
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableSubKategoriSampah)
+      await LocalDataService.client
+          .from(DataTables.tableSubKategoriSampah)
           .insert({
         'kategori_id': selectedKategoriForm.value!.id,
         'nama': namaController.text.trim(),
@@ -523,8 +523,8 @@ class MasterSampahController extends GetxController {
     }
     isSaving.value = true;
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableTipeSampah)
+      await LocalDataService.client
+          .from(DataTables.tableTipeSampah)
           .insert({
         'sub_kategori_id': selectedSubKategoriForm.value!.id,
         'nama': namaController.text.trim(),
@@ -547,8 +547,8 @@ class MasterSampahController extends GetxController {
     if (!formKey.currentState!.validate()) return;
     isSaving.value = true;
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableJenisSampah)
+      await LocalDataService.client
+          .from(DataTables.tableJenisSampah)
           .insert({
         'sub_kategori_id': selectedSubKategoriForm.value?.id,
         'tipe_id':         selectedTipeForm.value?.id,
@@ -574,7 +574,7 @@ class MasterSampahController extends GetxController {
     if (!formKey.currentState!.validate()) return;
     isSaving.value = true;
     try {
-      await SupabaseService.client.from(SupabaseConstants.tableSatuan).insert({
+      await LocalDataService.client.from(DataTables.tableSatuan).insert({
         'nama':       namaController.text.trim(),
         'singkatan':  singkatanController.text.trim(),
       });
@@ -593,8 +593,8 @@ class MasterSampahController extends GetxController {
 
   Future<void> hapusKategori(String id) async {
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableKategoriSampah)
+      await LocalDataService.client
+          .from(DataTables.tableKategoriSampah)
           .delete()
           .eq('id', id);
       listKategori.removeWhere((e) => e.id == id);
@@ -607,8 +607,8 @@ class MasterSampahController extends GetxController {
 
   Future<void> hapusSubKategori(String id) async {
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableSubKategoriSampah)
+      await LocalDataService.client
+          .from(DataTables.tableSubKategoriSampah)
           .delete()
           .eq('id', id);
       listSubKategori.removeWhere((e) => e.id == id);
@@ -622,8 +622,8 @@ class MasterSampahController extends GetxController {
   // ← BARU
   Future<void> hapusTipe(String id) async {
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableTipeSampah)
+      await LocalDataService.client
+          .from(DataTables.tableTipeSampah)
           .delete()
           .eq('id', id);
       listTipe.removeWhere((e) => e.id == id);
@@ -636,8 +636,8 @@ class MasterSampahController extends GetxController {
 
   Future<void> hapusJenis(String id) async {
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableJenisSampah)
+      await LocalDataService.client
+          .from(DataTables.tableJenisSampah)
           .delete()
           .eq('id', id);
       listJenis.removeWhere((e) => e.id == id);
@@ -650,8 +650,8 @@ class MasterSampahController extends GetxController {
 
   Future<void> hapusSatuan(String id) async {
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableSatuan)
+      await LocalDataService.client
+          .from(DataTables.tableSatuan)
           .delete()
           .eq('id', id);
       listSatuan.removeWhere((e) => e.id == id);
@@ -663,7 +663,7 @@ class MasterSampahController extends GetxController {
   }
 
   String _mapPostgrestError(dynamic e) {
-    if (e is PostgrestException) {
+    if (e is LocalDataException) {
       if (e.code == '23505') return 'Data dengan nama tersebut sudah terdaftar.';
       return e.message;
     }

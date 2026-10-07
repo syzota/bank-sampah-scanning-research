@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
-import '../../core/services/supabase_service.dart';
+import '../../core/services/local_data_service.dart';
 import '../../core/services/session_service.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/constants/data_tables.dart';
 import '../../models/pengelolaan_sampah_model.dart';
 import '../../app/routes/app_routes.dart';
 
@@ -88,8 +88,8 @@ class DashboardController extends GetxController {
   }
 
   Future<void> _fetchAktivitasTerbaru(String bankSampahId) async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tablePengelolaanSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tablePengelolaanSampah)
         .select('''
           *,
           kategori_sampah(*),
@@ -112,8 +112,8 @@ class DashboardController extends GetxController {
     final firstDay = DateTime(now.year, now.month, 1);
     final lastDay = DateTime(now.year, now.month + 1, 0);
 
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tablePengelolaanSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tablePengelolaanSampah)
         .select('jumlah, total_harga, satuan(singkatan)')
         .eq('bank_sampah_id', bankSampahId)
         .gte('tanggal_pengelolaan',
@@ -155,8 +155,8 @@ class DashboardController extends GetxController {
 
   Future<void> _fetchStatistikHariIni(String bankSampahId) async {
     final todayStr = DateTime.now().toIso8601String().split('T').first;
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tablePengelolaanSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tablePengelolaanSampah)
         .select('jumlah')
         .eq('bank_sampah_id', bankSampahId)
         .eq('tanggal_pengelolaan', todayStr);

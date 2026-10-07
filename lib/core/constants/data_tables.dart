@@ -1,10 +1,7 @@
-class SupabaseConstants {
-  SupabaseConstants._();
+class DataTables {
+  DataTables._();
 
-  // Ganti dengan URL dan anon key dari project Supabase kamu
-  static const String url = 'YOUR_SUPABASE_URL';
-  static const String anonKey = 'YOUR_SUPABASE_ANON_KEY';
-
+  // Local SQLite table names.
   // Nama tabel
   static const String tableProfiles = 'profiles';
   static const String tableBankSampah = 'bank_sampah';

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../core/services/supabase_service.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/services/local_data_service.dart';
+import '../../core/constants/data_tables.dart';
 import '../../models/bank_sampah_model.dart';
 import '../../models/profile_model.dart';
 import '../../app/routes/app_routes.dart';
@@ -91,8 +91,8 @@ class BankSampahController extends GetxController {
   Future<void> fetchBankSampah() async {
     isLoading.value = true;
     try {
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tableBankSampah)
+      final data = await LocalDataService.client
+          .from(DataTables.tableBankSampah)
           .select()
           .order('nama');
       listBankSampah.value = (data as List)
@@ -108,8 +108,8 @@ class BankSampahController extends GetxController {
 
   Future<void> _fetchStatistikPerBank() async {
     try {
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaanSampah)
+      final data = await LocalDataService.client
+          .from(DataTables.tablePengelolaanSampah)
           .select('bank_sampah_id, jumlah, nama_nasabah, satuan(singkatan)');
 
       final kgMap = <String, double>{};
@@ -146,8 +146,8 @@ class BankSampahController extends GetxController {
 
   Future<void> _fetchPengelolaTerhubung(String bankSampahId) async {
     try {
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaBankSampah)
+      final data = await LocalDataService.client
+          .from(DataTables.tablePengelolaBankSampah)
           .select('profile_id, profiles(*)')
           .eq('bank_sampah_id', bankSampahId);
 
@@ -222,15 +222,15 @@ class BankSampahController extends GetxController {
       };
 
       if (isEditMode) {
-        await SupabaseService.client
-            .from(SupabaseConstants.tableBankSampah)
+        await LocalDataService.client
+            .from(DataTables.tableBankSampah)
             .update(payload)
             .eq('id', editData.value!.id);
         Get.back(result: true);
         Get.snackbar('Berhasil', 'Bank sampah berhasil diperbarui.');
       } else {
-        await SupabaseService.client
-            .from(SupabaseConstants.tableBankSampah)
+        await LocalDataService.client
+            .from(DataTables.tableBankSampah)
             .insert(payload);
         Get.back(result: true);
         Get.snackbar('Berhasil', 'Bank sampah berhasil ditambahkan.');
@@ -266,8 +266,8 @@ class BankSampahController extends GetxController {
     if (confirm != true) return;
 
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableBankSampah)
+      await LocalDataService.client
+          .from(DataTables.tableBankSampah)
           .delete()
           .eq('id', bank.id);
       listBankSampah.removeWhere((e) => e.id == bank.id);
@@ -279,8 +279,8 @@ class BankSampahController extends GetxController {
 
   Future<void> toggleAktif(BankSampahModel b) async {
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableBankSampah)
+      await LocalDataService.client
+          .from(DataTables.tableBankSampah)
           .update({'is_active': !b.isActive})
           .eq('id', b.id);
       await fetchBankSampah();
@@ -292,8 +292,8 @@ class BankSampahController extends GetxController {
   Future<void> lepaskanPengelola(ProfileModel pengelola) async {
     if (editData.value == null) return;
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaBankSampah)
+      await LocalDataService.client
+          .from(DataTables.tablePengelolaBankSampah)
           .delete()
           .eq('bank_sampah_id', editData.value!.id)
           .eq('profile_id', pengelola.id);

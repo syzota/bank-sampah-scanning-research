@@ -4,8 +4,8 @@ import 'package:csv/csv.dart';
 
 import '../../core/utils/file_saver_helper.dart';
 
-import '../../core/services/supabase_service.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/services/local_data_service.dart';
+import '../../core/constants/data_tables.dart';
 import '../../core/utils/format_helper.dart';
 import '../../models/bank_sampah_model.dart';
 import '../../models/kategori_model.dart';
@@ -64,8 +64,8 @@ void onInit() {
   Future<void> _fetchBankSampah() async {
     isLoading.value = true;
     try {
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tableBankSampah)
+      final data = await LocalDataService.client
+          .from(DataTables.tableBankSampah)
           .select()
           .order('nama');
       listBankSampah.value =
@@ -79,8 +79,8 @@ void onInit() {
 
   Future<void> _fetchMasterData() async {
   try {
-    final resKategori = await SupabaseService.client
-        .from(SupabaseConstants.tableKategoriSampah)
+    final resKategori = await LocalDataService.client
+        .from(DataTables.tableKategoriSampah)
         .select()
         .eq('is_active', true)
         .order('urutan');
@@ -88,8 +88,8 @@ void onInit() {
         .map((e) => KategoriModel.fromJson(e))
         .toList();
 
-    final resSubKategori = await SupabaseService.client
-        .from(SupabaseConstants.tableSubKategoriSampah)
+    final resSubKategori = await LocalDataService.client
+        .from(DataTables.tableSubKategoriSampah)
         .select()
         .eq('is_active', true)
         .order('urutan');
@@ -97,8 +97,8 @@ void onInit() {
         .map((e) => SubKategoriModel.fromJson(e))
         .toList();
 
-    final resTipe = await SupabaseService.client
-        .from(SupabaseConstants.tableTipeSampah)
+    final resTipe = await LocalDataService.client
+        .from(DataTables.tableTipeSampah)
         .select()
         .eq('is_active', true)
         .order('urutan');
@@ -106,8 +106,8 @@ void onInit() {
         .map((e) => TipeSampahModel.fromJson(e))
         .toList();
 
-    final resJenis = await SupabaseService.client
-        .from(SupabaseConstants.tableJenisSampah)
+    final resJenis = await LocalDataService.client
+        .from(DataTables.tableJenisSampah)
         .select()
         .eq('is_active', true)
         .order('urutan');
@@ -124,8 +124,8 @@ void onInit() {
       selectedTanggalAkhir.value != null;
 
   Future<List<PengelolaanSampahModel>> _fetchDataLaporan() async {
-    var query = SupabaseService.client
-        .from(SupabaseConstants.tablePengelolaanSampah)
+    var query = LocalDataService.client
+        .from(DataTables.tablePengelolaanSampah)
         .select('''
           *,
           kategori_sampah(*),

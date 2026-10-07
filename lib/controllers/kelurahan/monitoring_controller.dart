@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../core/services/supabase_service.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/services/local_data_service.dart';
+import '../../core/constants/data_tables.dart';
 import '../../models/bank_sampah_model.dart';
 import '../../models/pengelolaan_sampah_model.dart';
 
@@ -94,8 +94,8 @@ class MonitoringController extends GetxController {
   }
 
   Future<void> fetchSemuaBankSampah() async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableBankSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tableBankSampah)
         .select()
         .order('nama');
     listBankSampah.value =
@@ -107,8 +107,8 @@ class MonitoringController extends GetxController {
     final firstDay = DateTime(now.year, now.month, 1);
     final lastDay = DateTime(now.year, now.month + 1, 0);
 
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tablePengelolaanSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tablePengelolaanSampah)
         .select('bank_sampah_id, jumlah, total_harga')
         .gte('tanggal_pengelolaan',
             firstDay.toIso8601String().split('T').first)
@@ -157,8 +157,8 @@ class MonitoringController extends GetxController {
       final firstDay = DateTime(now.year, now.month, 1);
       final lastDay = DateTime(now.year, now.month + 1, 0);
 
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaanSampah)
+      final data = await LocalDataService.client
+          .from(DataTables.tablePengelolaanSampah)
           .select('''
             *,
             kategori_sampah(*),

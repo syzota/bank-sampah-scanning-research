@@ -9,6 +9,7 @@ import '../../core/utils/validator.dart';
 import '../../core/widgets/app_widgets.dart';
 import '../../core/widgets/wave_painter.dart';
 import 'widgets/input_sampah_widgets.dart';
+import 'widgets/waste_scan_card.dart';
 
 class InputSampahView extends StatefulWidget {
   const InputSampahView({super.key});
@@ -32,25 +33,37 @@ class _InputSampahViewState extends State<InputSampahView> {
   bool _validateStep1({bool showSnackbar = false}) {
     if (controller.selectedKategoriId.value.isEmpty) {
       if (showSnackbar) {
-        AppSnackbar.info('Silakan pilih kategori sampah.', title: 'Kategori Kosong');
+        AppSnackbar.info(
+          'Silakan pilih kategori sampah.',
+          title: 'Kategori Kosong',
+        );
       }
       return false;
     }
-    if (controller.listSubKategori.isNotEmpty && controller.selectedSubKategoriId.value.isEmpty) {
+    if (controller.listSubKategori.isNotEmpty &&
+        controller.selectedSubKategoriId.value.isEmpty) {
       if (showSnackbar) {
-        AppSnackbar.info('Silakan pilih sub kategori sampah.', title: 'Sub Kategori Kosong');
+        AppSnackbar.info(
+          'Silakan pilih sub kategori sampah.',
+          title: 'Sub Kategori Kosong',
+        );
       }
       return false;
     }
-    if (controller.listTipe.isNotEmpty && controller.selectedTipeId.value.isEmpty) {
+    if (controller.listTipe.isNotEmpty &&
+        controller.selectedTipeId.value.isEmpty) {
       if (showSnackbar) {
         AppSnackbar.info('Silakan pilih tipe material.', title: 'Tipe Kosong');
       }
       return false;
     }
-    if (controller.listJenisSampah.isNotEmpty && controller.selectedJenisId.value.isEmpty) {
+    if (controller.listJenisSampah.isNotEmpty &&
+        controller.selectedJenisId.value.isEmpty) {
       if (showSnackbar) {
-        AppSnackbar.info('Silakan pilih jenis sampah.', title: 'Jenis Sampah Kosong');
+        AppSnackbar.info(
+          'Silakan pilih jenis sampah.',
+          title: 'Jenis Sampah Kosong',
+        );
       }
       return false;
     }
@@ -61,7 +74,10 @@ class _InputSampahViewState extends State<InputSampahView> {
     final nasabahText = controller.nasabahController.text.trim();
     if (nasabahText.isEmpty) {
       if (showSnackbar) {
-        AppSnackbar.info('Silakan isi nama nasabah.', title: 'Nama Nasabah Kosong');
+        AppSnackbar.info(
+          'Silakan isi nama nasabah.',
+          title: 'Nama Nasabah Kosong',
+        );
       }
       return false;
     }
@@ -69,13 +85,19 @@ class _InputSampahViewState extends State<InputSampahView> {
     final parseJumlah = double.tryParse(jumlahText.replaceAll(',', '.'));
     if (jumlahText.isEmpty || parseJumlah == null || parseJumlah <= 0) {
       if (showSnackbar) {
-        AppSnackbar.info('Masukkan jumlah sampah yang valid (lebih dari 0).', title: 'Jumlah Tidak Valid');
+        AppSnackbar.info(
+          'Masukkan jumlah sampah yang valid (lebih dari 0).',
+          title: 'Jumlah Tidak Valid',
+        );
       }
       return false;
     }
     if (controller.selectedSatuanId.value.isEmpty) {
       if (showSnackbar) {
-        AppSnackbar.info('Silakan tentukan satuan sampah.', title: 'Satuan Kosong');
+        AppSnackbar.info(
+          'Silakan tentukan satuan sampah.',
+          title: 'Satuan Kosong',
+        );
       }
       return false;
     }
@@ -83,13 +105,19 @@ class _InputSampahViewState extends State<InputSampahView> {
     final parseHarga = double.tryParse(hargaText.replaceAll(',', '.'));
     if (hargaText.isEmpty || parseHarga == null || parseHarga < 0) {
       if (showSnackbar) {
-        AppSnackbar.info('Masukkan harga per satuan yang valid.', title: 'Harga Tidak Valid');
+        AppSnackbar.info(
+          'Masukkan harga per satuan yang valid.',
+          title: 'Harga Tidak Valid',
+        );
       }
       return false;
     }
     if (controller.selectedTanggal.value == null) {
       if (showSnackbar) {
-        AppSnackbar.info('Silakan pilih tanggal pengelolaan.', title: 'Tanggal Kosong');
+        AppSnackbar.info(
+          'Silakan pilih tanggal pengelolaan.',
+          title: 'Tanggal Kosong',
+        );
       }
       return false;
     }
@@ -98,6 +126,18 @@ class _InputSampahViewState extends State<InputSampahView> {
 
   @override
   Widget build(BuildContext context) {
+    return Obx(
+      () => PopScope(
+        canPop: !controller.isScanBusy && !controller.isLoading.value,
+        child: AbsorbPointer(
+          absorbing: controller.isScanBusy || controller.isLoading.value,
+          child: _buildScaffold(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -109,10 +149,15 @@ class _InputSampahViewState extends State<InputSampahView> {
               child: Form(
                 key: controller.formKey,
                 child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   physics: const BouncingScrollPhysics(),
                   children: [
                     if (_currentStep == 0) ...[
+                      WasteScanCard(controller: controller),
+                      const SizedBox(height: 16),
                       SectionCard(
                         icon: Icons.category_outlined,
                         iconColor: AppColors.purple,
@@ -121,74 +166,102 @@ class _InputSampahViewState extends State<InputSampahView> {
                         title: 'Jenis Sampah',
                         child: Column(
                           children: [
-                            Obx(() => DropdownField<String>(
-                                  label: 'Kategori *',
-                                  hint: 'Pilih kategori',
-                                  value: controller.selectedKategoriId.value.isEmpty
-                                      ? null
-                                      : controller.selectedKategoriId.value,
-                                  items: controller.listKategori
-                                      .map((k) => DropdownMenuItem(
-                                            value: k.id,
-                                            child: Text(k.nama),
-                                          ))
-                                      .toList(),
-                                  validator: (v) => AppValidator.required(v,
-                                      fieldName: 'Kategori'),
-                                  onChanged: controller.onKategoriChanged,
-                                )),
+                            Obx(
+                              () => DropdownField<String>(
+                                label: 'Kategori *',
+                                hint: 'Pilih kategori',
+                                value:
+                                    controller.selectedKategoriId.value.isEmpty
+                                    ? null
+                                    : controller.selectedKategoriId.value,
+                                items: controller.listKategori
+                                    .map(
+                                      (k) => DropdownMenuItem(
+                                        value: k.id,
+                                        child: Text(k.nama),
+                                      ),
+                                    )
+                                    .toList(),
+                                validator: (v) => AppValidator.required(
+                                  v,
+                                  fieldName: 'Kategori',
+                                ),
+                                onChanged: controller.onKategoriChanged,
+                              ),
+                            ),
 
                             Obx(() {
                               if (controller.selectedKategoriId.value.isEmpty ||
                                   controller.listSubKategori.isEmpty) {
                                 return const SizedBox.shrink();
                               }
-                              return Column(children: [
-                                const SizedBox(height: 14),
-                                DropdownField<String>(
-                                  label: 'Sub Kategori *',
-                                  hint: 'Pilih sub kategori',
-                                  value: controller
-                                          .selectedSubKategoriId.value.isEmpty
-                                      ? null
-                                      : controller.selectedSubKategoriId.value,
-                                  items: controller.listSubKategori
-                                      .map((s) => DropdownMenuItem(
+                              return Column(
+                                children: [
+                                  const SizedBox(height: 14),
+                                  DropdownField<String>(
+                                    label: 'Sub Kategori *',
+                                    hint: 'Pilih sub kategori',
+                                    value:
+                                        controller
+                                            .selectedSubKategoriId
+                                            .value
+                                            .isEmpty
+                                        ? null
+                                        : controller
+                                              .selectedSubKategoriId
+                                              .value,
+                                    items: controller.listSubKategori
+                                        .map(
+                                          (s) => DropdownMenuItem(
                                             value: s.id,
                                             child: Text(s.nama),
-                                          ))
-                                      .toList(),
-                                  validator: (v) => AppValidator.required(v,
-                                      fieldName: 'Sub Kategori'),
-                                  onChanged: controller.onSubKategoriChanged,
-                                ),
-                              ]);
+                                          ),
+                                        )
+                                        .toList(),
+                                    validator: (v) => AppValidator.required(
+                                      v,
+                                      fieldName: 'Sub Kategori',
+                                    ),
+                                    onChanged: controller.onSubKategoriChanged,
+                                  ),
+                                ],
+                              );
                             }),
 
                             Obx(() {
-                              if (controller.selectedSubKategoriId.value.isEmpty ||
+                              if (controller
+                                      .selectedSubKategoriId
+                                      .value
+                                      .isEmpty ||
                                   controller.listTipe.isEmpty) {
                                 return const SizedBox.shrink();
                               }
-                              return Column(children: [
-                                const SizedBox(height: 14),
-                                DropdownField<String>(
-                                  label: 'Tipe *',
-                                  hint: 'Pilih tipe material',
-                                  value: controller.selectedTipeId.value.isEmpty
-                                      ? null
-                                      : controller.selectedTipeId.value,
-                                  items: controller.listTipe
-                                      .map((t) => DropdownMenuItem(
+                              return Column(
+                                children: [
+                                  const SizedBox(height: 14),
+                                  DropdownField<String>(
+                                    label: 'Tipe *',
+                                    hint: 'Pilih tipe material',
+                                    value:
+                                        controller.selectedTipeId.value.isEmpty
+                                        ? null
+                                        : controller.selectedTipeId.value,
+                                    items: controller.listTipe
+                                        .map(
+                                          (t) => DropdownMenuItem(
                                             value: t.id,
                                             child: Text(t.nama),
-                                          ))
-                                      .toList(),
-                                  validator: (v) =>
-                                      AppValidator.required(v, fieldName: 'Tipe'),
-                                  onChanged: controller.onTipeChanged,
-                                ),
-                              ]);
+                                          ),
+                                        )
+                                        .toList(),
+                                    validator: (v) => AppValidator.required(
+                                      v,
+                                      fieldName: 'Tipe',
+                                    ),
+                                    onChanged: controller.onTipeChanged,
+                                  ),
+                                ],
+                              );
                             }),
 
                             Obx(() {
@@ -199,25 +272,32 @@ class _InputSampahViewState extends State<InputSampahView> {
                                   controller.selectedTipeId.value.isEmpty) {
                                 return const SizedBox.shrink();
                               }
-                              return Column(children: [
-                                const SizedBox(height: 14),
-                                DropdownField<String>(
-                                  label: 'Jenis Sampah *',
-                                  hint: 'Pilih jenis sampah',
-                                  value: controller.selectedJenisId.value.isEmpty
-                                      ? null
-                                      : controller.selectedJenisId.value,
-                                  items: controller.listJenisSampah
-                                      .map((j) => DropdownMenuItem(
+                              return Column(
+                                children: [
+                                  const SizedBox(height: 14),
+                                  DropdownField<String>(
+                                    label: 'Jenis Sampah *',
+                                    hint: 'Pilih jenis sampah',
+                                    value:
+                                        controller.selectedJenisId.value.isEmpty
+                                        ? null
+                                        : controller.selectedJenisId.value,
+                                    items: controller.listJenisSampah
+                                        .map(
+                                          (j) => DropdownMenuItem(
                                             value: j.id,
                                             child: Text(j.nama),
-                                          ))
-                                      .toList(),
-                                  validator: (v) => AppValidator.required(v,
-                                      fieldName: 'Jenis Sampah'),
-                                  onChanged: controller.onJenisChanged,
-                                ),
-                              ]);
+                                          ),
+                                        )
+                                        .toList(),
+                                    validator: (v) => AppValidator.required(
+                                      v,
+                                      fieldName: 'Jenis Sampah',
+                                    ),
+                                    onChanged: controller.onJenisChanged,
+                                  ),
+                                ],
+                              );
                             }),
                           ],
                         ),
@@ -234,75 +314,109 @@ class _InputSampahViewState extends State<InputSampahView> {
                           focusNode: FocusNode(),
                           optionsBuilder: (TextEditingValue textEditingValue) {
                             final currentText = textEditingValue.text.trim();
-                            final matches = controller.listNamaNasabah.where((String option) {
-                              return option.toLowerCase().contains(currentText.toLowerCase());
+                            final matches = controller.listNamaNasabah.where((
+                              String option,
+                            ) {
+                              return option.toLowerCase().contains(
+                                currentText.toLowerCase(),
+                              );
                             }).toList();
 
-                            if (currentText.isNotEmpty && !controller.listNamaNasabah.contains(currentText)) {
+                            if (currentText.isNotEmpty &&
+                                !controller.listNamaNasabah.contains(
+                                  currentText,
+                                )) {
                               matches.add('Tambah: "$currentText"');
                             }
                             return matches;
                           },
                           onSelected: (String selection) {
-                            if (selection.startsWith('Tambah: "') && selection.endsWith('"')) {
-                              final name = selection.substring(9, selection.length - 1);
+                            if (selection.startsWith('Tambah: "') &&
+                                selection.endsWith('"')) {
+                              final name = selection.substring(
+                                9,
+                                selection.length - 1,
+                              );
                               controller.nasabahController.text = name;
                             } else {
                               controller.nasabahController.text = selection;
                             }
                           },
-                          fieldViewBuilder: (BuildContext context,
-                              TextEditingController textEditingController,
-                              FocusNode focusNode,
-                              VoidCallback onFieldSubmitted) {
-                            return TextFormField(
-                              controller: textEditingController,
-                              focusNode: focusNode,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: AppColors.textPrimary,
-                                fontFamily: 'PlusJakartaSans',
-                              ),
-                              decoration: const InputDecoration(
-                                labelText: 'Nama Nasabah *',
-                                hintText: 'Ketik nama nasabah...',
-                                prefixIcon: Icon(Icons.person_search_rounded, size: 20, color: AppColors.outline),
-                              ),
-                              validator: (v) => AppValidator.required(v, fieldName: 'Nama nasabah'),
-                            );
-                          },
-                          optionsViewBuilder: (BuildContext context,
-                              AutocompleteOnSelected<String> onSelected,
-                              Iterable<String> options) {
-                            return Align(
-                              alignment: Alignment.topLeft,
-                              child: Material(
-                                elevation: 4,
-                                borderRadius: BorderRadius.circular(16),
-                                color: Colors.white,
-                                child: Container(
-                                  width: 320,
-                                  constraints: const BoxConstraints(maxHeight: 200),
-                                  decoration: BoxDecoration(
+                          fieldViewBuilder:
+                              (
+                                BuildContext context,
+                                TextEditingController textEditingController,
+                                FocusNode focusNode,
+                                VoidCallback onFieldSubmitted,
+                              ) {
+                                return TextFormField(
+                                  controller: textEditingController,
+                                  focusNode: focusNode,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textPrimary,
+                                    fontFamily: 'Roboto',
+                                  ),
+                                  decoration: const InputDecoration(
+                                    labelText: 'Nama Nasabah *',
+                                    hintText: 'Ketik nama nasabah...',
+                                    prefixIcon: Icon(
+                                      Icons.person_search_rounded,
+                                      size: 20,
+                                      color: AppColors.outline,
+                                    ),
+                                  ),
+                                  validator: (v) => AppValidator.required(
+                                    v,
+                                    fieldName: 'Nama nasabah',
+                                  ),
+                                );
+                              },
+                          optionsViewBuilder:
+                              (
+                                BuildContext context,
+                                AutocompleteOnSelected<String> onSelected,
+                                Iterable<String> options,
+                              ) {
+                                return Align(
+                                  alignment: Alignment.topLeft,
+                                  child: Material(
+                                    elevation: 4,
                                     borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(color: AppColors.outlineVariant.withValues(alpha: 0.4)),
+                                    color: Colors.white,
+                                    child: Container(
+                                      width: 320,
+                                      constraints: const BoxConstraints(
+                                        maxHeight: 200,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: AppColors.outlineVariant
+                                              .withValues(alpha: 0.4),
+                                        ),
+                                      ),
+                                      child: ListView.builder(
+                                        padding: EdgeInsets.zero,
+                                        shrinkWrap: true,
+                                        itemCount: options.length,
+                                        itemBuilder:
+                                            (BuildContext context, int index) {
+                                              final String option = options
+                                                  .elementAt(index);
+                                              return ListTile(
+                                                title: Text(
+                                                  option,
+                                                  style: AppTextStyles.bodyMd,
+                                                ),
+                                                onTap: () => onSelected(option),
+                                              );
+                                            },
+                                      ),
+                                    ),
                                   ),
-                                  child: ListView.builder(
-                                    padding: EdgeInsets.zero,
-                                    shrinkWrap: true,
-                                    itemCount: options.length,
-                                    itemBuilder: (BuildContext context, int index) {
-                                      final String option = options.elementAt(index);
-                                      return ListTile(
-                                        title: Text(option, style: AppTextStyles.bodyMd),
-                                        onTap: () => onSelected(option),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+                                );
+                              },
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -327,7 +441,8 @@ class _InputSampahViewState extends State<InputSampahView> {
                                     prefixIcon: Icons.scale_outlined,
                                     keyboardType:
                                         const TextInputType.numberWithOptions(
-                                            decimal: true),
+                                          decimal: true,
+                                        ),
                                     validator: AppValidator.jumlah,
                                   ),
                                 ),
@@ -335,25 +450,38 @@ class _InputSampahViewState extends State<InputSampahView> {
                                 Expanded(
                                   child: Obx(
                                     () => Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         DropdownField<String>(
                                           label: 'Satuan *',
                                           hint: 'Satuan',
                                           value:
-                                              controller.selectedSatuanId.value.isEmpty
-                                                  ? null
-                                                  : controller.selectedSatuanId.value,
+                                              controller
+                                                  .selectedSatuanId
+                                                  .value
+                                                  .isEmpty
+                                              ? null
+                                              : controller
+                                                    .selectedSatuanId
+                                                    .value,
                                           items: controller.listSatuan
-                                              .map((s) => DropdownMenuItem(
-                                                    value: s.id,
-                                                    child: Text(s.singkatan),
-                                                  ))
+                                              .map(
+                                                (s) => DropdownMenuItem(
+                                                  value: s.id,
+                                                  child: Text(s.singkatan),
+                                                ),
+                                              )
                                               .toList(),
-                                          validator: (v) => AppValidator.required(v,
-                                              fieldName: 'Satuan'),
+                                          validator: (v) =>
+                                              AppValidator.required(
+                                                v,
+                                                fieldName: 'Satuan',
+                                              ),
                                           onChanged: (v) =>
-                                              controller.selectedSatuanId.value =
+                                              controller
+                                                      .selectedSatuanId
+                                                      .value =
                                                   v ?? '',
                                         ),
                                       ],
@@ -368,7 +496,10 @@ class _InputSampahViewState extends State<InputSampahView> {
                               label: 'Harga per Satuan (Rp) *',
                               hint: 'Masukkan harga per satuan...',
                               prefixIcon: Icons.attach_money_rounded,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: false),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: false,
+                                  ),
                               inputFormatters: [
                                 ThousandsSeparatorInputFormatter(),
                               ],
@@ -394,18 +525,18 @@ class _InputSampahViewState extends State<InputSampahView> {
                             readOnly: true,
                             onTap: () => controller.pickTanggal(context),
                             validator: (_) => AppValidator.tanggal(
-                                controller.selectedTanggal.value),
-                            suffixIcon:
-                                controller.selectedTanggal.value != null
-                                    ? IconButton(
-                                        icon: const Icon(
-                                          Icons.clear_rounded,
-                                          color: AppColors.outline,
-                                          size: 18,
-                                        ),
-                                        onPressed: controller.clearTanggal,
-                                      )
-                                    : null,
+                              controller.selectedTanggal.value,
+                            ),
+                            suffixIcon: controller.selectedTanggal.value != null
+                                ? IconButton(
+                                    icon: const Icon(
+                                      Icons.clear_rounded,
+                                      color: AppColors.outline,
+                                      size: 18,
+                                    ),
+                                    onPressed: controller.clearTanggal,
+                                  )
+                                : null,
                           ),
                         ),
                       ),
@@ -487,9 +618,11 @@ class _InputSampahViewState extends State<InputSampahView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      controller.isEditMode ? 'Edit Data Sampah' : 'Input Data Sampah',
+                      controller.isEditMode
+                          ? 'Edit Data Sampah'
+                          : 'Input Data Sampah',
                       style: const TextStyle(
-                        fontFamily: 'PlusJakartaSans',
+                        fontFamily: 'Roboto',
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
@@ -503,7 +636,7 @@ class _InputSampahViewState extends State<InputSampahView> {
                           ? 'Perbarui data pengelolaan bank sampah'
                           : 'Tambah pencatatan pengelolaan baru',
                       style: TextStyle(
-                        fontFamily: 'PlusJakartaSans',
+                        fontFamily: 'Roboto',
                         fontSize: 12,
                         color: Colors.white.withValues(alpha: 0.75),
                       ),
@@ -601,7 +734,9 @@ class _InputSampahViewState extends State<InputSampahView> {
             child: Icon(
               isCompleted ? Icons.check_rounded : icon,
               size: 16,
-              color: (isCompleted || isActive) ? Colors.white : Colors.grey.shade400,
+              color: (isCompleted || isActive)
+                  ? Colors.white
+                  : Colors.grey.shade400,
             ),
           ),
           const SizedBox(height: 6),
@@ -610,13 +745,15 @@ class _InputSampahViewState extends State<InputSampahView> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 11,
-              fontWeight: isActive || isCompleted ? FontWeight.w700 : FontWeight.w500,
+              fontWeight: isActive || isCompleted
+                  ? FontWeight.w700
+                  : FontWeight.w500,
               color: isActive
                   ? AppColors.pengelolaMain
                   : isCompleted
-                      ? AppColors.textPrimary
-                      : Colors.grey.shade400,
-              fontFamily: 'PlusJakartaSans',
+                  ? AppColors.textPrimary
+                  : Colors.grey.shade400,
+              fontFamily: 'Roboto',
             ),
           ),
         ],
@@ -644,12 +781,7 @@ class _InputSampahViewState extends State<InputSampahView> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: Colors.grey.shade100,
-            width: 1,
-          ),
-        ),
+        border: Border(top: BorderSide(color: Colors.grey.shade100, width: 1)),
       ),
       child: SafeArea(
         top: false,
@@ -662,7 +794,10 @@ class _InputSampahViewState extends State<InputSampahView> {
                   onPressed: () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 15),
-                    side: const BorderSide(color: AppColors.pengelolaMain, width: 1.5),
+                    side: const BorderSide(
+                      color: AppColors.pengelolaMain,
+                      width: 1.5,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -696,7 +831,10 @@ class _InputSampahViewState extends State<InputSampahView> {
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 15),
-                    side: const BorderSide(color: AppColors.pengelolaMain, width: 1.5),
+                    side: const BorderSide(
+                      color: AppColors.pengelolaMain,
+                      width: 1.5,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -730,7 +868,10 @@ class _InputSampahViewState extends State<InputSampahView> {
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 15),
-                    side: const BorderSide(color: AppColors.pengelolaMain, width: 1.5),
+                    side: const BorderSide(
+                      color: AppColors.pengelolaMain,
+                      width: 1.5,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -790,8 +931,11 @@ class _InputSampahViewState extends State<InputSampahView> {
                     color: AppColors.pengelolaLight,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.sell_outlined,
-                      color: AppColors.pengelolaMain, size: 18),
+                  child: const Icon(
+                    Icons.sell_outlined,
+                    color: AppColors.pengelolaMain,
+                    size: 18,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 const Text(
@@ -800,13 +944,15 @@ class _InputSampahViewState extends State<InputSampahView> {
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
-                    fontFamily: 'PlusJakartaSans',
+                    fontFamily: 'Roboto',
                   ),
                 ),
                 const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5),
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.pengelolaLight,
                     borderRadius: BorderRadius.circular(10),
@@ -817,7 +963,7 @@ class _InputSampahViewState extends State<InputSampahView> {
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: AppColors.pengelolaMain,
-                      fontFamily: 'PlusJakartaSans',
+                      fontFamily: 'Roboto',
                     ),
                   ),
                 ),
@@ -835,13 +981,17 @@ class _InputSampahViewState extends State<InputSampahView> {
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,
-                      fontFamily: 'PlusJakartaSans',
+                      fontFamily: 'Roboto',
                     ),
                   ),
                   Text(
                     FormatHelper.currency(
-                      (double.tryParse(controller.jumlahController.text
-                                  .replaceAll(',', '.')) ??
+                      (double.tryParse(
+                                controller.jumlahController.text.replaceAll(
+                                  ',',
+                                  '.',
+                                ),
+                              ) ??
                               0) *
                           controller.hargaSnapshot.value!.hargaPerSatuan,
                     ),
@@ -849,7 +999,7 @@ class _InputSampahViewState extends State<InputSampahView> {
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: AppColors.teal,
-                      fontFamily: 'PlusJakartaSans',
+                      fontFamily: 'Roboto',
                     ),
                   ),
                 ],

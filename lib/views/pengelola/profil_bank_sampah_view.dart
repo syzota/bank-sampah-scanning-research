@@ -7,8 +7,8 @@ import '../../app/themes/app_colors.dart';
 import '../../controllers/auth_controller.dart';
 import '../../core/services/session_service.dart';
 import '../../core/utils/format_helper.dart';
-import '../../core/services/supabase_service.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/services/local_data_service.dart';
+import '../../core/constants/data_tables.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import '../../models/bank_sampah_model.dart';
 import '../../models/profile_model.dart';
@@ -641,8 +641,8 @@ class ProfilBankSampahView extends StatelessWidget {
     if (picked == null || !context.mounted) return;
 
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tableBankSampah)
+      await LocalDataService.client
+          .from(DataTables.tableBankSampah)
           .update({'latitude': picked.latitude, 'longitude': picked.longitude})
           .eq('id', bank.id);
       SessionService.to.setActiveBankSampah(
@@ -734,7 +734,7 @@ class ProfilBankSampahView extends StatelessWidget {
           _InfoRow(
             icon: Icons.email_outlined,
             label: 'Email Terdaftar',
-            value: SupabaseService.currentUser?.email ?? '-',
+            value: LocalDataService.currentUser?.email ?? '-',
             accent: AppColors.blueDeep,
             accentBg: AppColors.kelurahanLight,
           ),

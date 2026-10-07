@@ -1,43 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 import 'app/themes/app_theme.dart';
-import 'core/constants/supabase_constants.dart';
+import 'core/constants/data_tables.dart';
+import 'core/services/local_data_service.dart';
 import 'core/services/session_service.dart';
 import 'models/profile_model.dart';
 import 'controllers/auth_controller.dart';
 import 'app/themes/app_colors.dart';
 import 'core/widgets/motion.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('id_ID', null);
 
-  await dotenv.load(fileName: ".env");
-
-  final supabaseUrl =
-      dotenv.env['SUPABASE_URL'] ?? 'https://placeholder.supabase.co';
-  final supabaseKey = dotenv.env['SUPABASE_ANON_KEY'] ?? 'placeholder-key';
-
-  await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+  try {
+    await LocalDataService.initialize();
+  } catch (error) {
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text('Database penelitian gagal dibuka.\n$error'),
+            ),
+          ),
+        ),
+      ),
+    );
+    return;
+  }
 
   await Get.putAsync(() async => SessionService());
   Get.put(AuthController(), permanent: true);
 
-  // Cek existing session Supabase (persist setelah browser refresh)
-  final existingUser = Supabase.instance.client.auth.currentUser;
+  // Restore the session stored in this installation's SQLite database.
+  final existingUser = LocalDataService.client.auth.currentUser;
   String initialRoute = AppRoutes.login;
 
   if (existingUser != null) {
     try {
-      final data = await Supabase.instance.client
-          .from(SupabaseConstants.tableProfiles)
+      final data = await LocalDataService.client
+          .from(DataTables.tableProfiles)
           .select()
           .eq('auth_user_id', existingUser.id)
           .single();
@@ -72,7 +81,7 @@ class BisaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'BISA - Bank Informasi Sampah',
+      title: 'BISA Penelitian SQLite',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       defaultTransition: Transition.fadeIn,
@@ -104,15 +113,27 @@ class _SmoothScrollBehavior extends ScrollBehavior {
       case TargetPlatform.macOS:
         return const BouncingScrollPhysics();
       default:
-        return const BouncingScrollPhysics(decelerationRate: ScrollDecelerationRate.fast);
+        return const BouncingScrollPhysics(
+          decelerationRate: ScrollDecelerationRate.fast,
+        );
     }
   }
 
   @override
-  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
     return child; // tanpa glow
-  }  @override
-  Widget buildScrollbar(BuildContext context, Widget child, ScrollableDetails details) {
+  }
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
     return child;
   }
 }

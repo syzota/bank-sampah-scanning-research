@@ -9,13 +9,19 @@ class AppValidator {
   }
 
   static String? email(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    final text = value?.trim() ?? '';
+
+    if (text.isEmpty) {
       return 'Email wajib diisi';
     }
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value.trim())) {
+
+    final emailRegex =
+        RegExp(r'^[\w.-]+@([\w-]+\.)+[a-zA-Z]{2,}$');
+
+    if (!emailRegex.hasMatch(text)) {
       return 'Format email tidak valid';
     }
+
     return null;
   }
 

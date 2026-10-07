@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../core/services/supabase_service.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/services/local_data_service.dart';
+import '../../core/constants/data_tables.dart';
 import '../../core/services/session_service.dart';
 import '../../models/nasabah_model.dart';
 import '../../models/bank_sampah_model.dart';
@@ -60,8 +60,8 @@ class NasabahController extends GetxController {
   Future<void> fetchNasabah() async {
     try {
       // Query unique customer names dynamically from pengelolaan_sampah transactions
-      var query = SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaanSampah)
+      var query = LocalDataService.client
+          .from(DataTables.tablePengelolaanSampah)
           .select('nama_nasabah');
       
       // If logged in as BSU operator (pengelola), restrict to their BSU only
@@ -128,8 +128,8 @@ class NasabahController extends GetxController {
         }
 
         // Update the customer name across all transactions in pengelolaan_sampah
-        var query = SupabaseService.client
-            .from(SupabaseConstants.tablePengelolaanSampah)
+        var query = LocalDataService.client
+            .from(DataTables.tablePengelolaanSampah)
             .update({'nama_nasabah': newName})
             .eq('nama_nasabah', oldName);
 
@@ -157,8 +157,8 @@ class NasabahController extends GetxController {
     isLoading.value = true;
     try {
       // Set nama_nasabah to null in all matching transactions
-      var query = SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaanSampah)
+      var query = LocalDataService.client
+          .from(DataTables.tablePengelolaanSampah)
           .update({'nama_nasabah': null})
           .eq('nama_nasabah', nama);
 

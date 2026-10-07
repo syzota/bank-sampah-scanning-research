@@ -11,9 +11,9 @@ import 'package:pdf/widgets.dart' as pw;
 
 import '../../core/utils/file_saver_helper.dart';
 
-import '../../core/services/supabase_service.dart';
+import '../../core/services/local_data_service.dart';
 import '../../core/services/session_service.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/constants/data_tables.dart';
 import '../../core/utils/format_helper.dart';
 import '../../app/routes/app_routes.dart';
 import '../../models/kategori_model.dart';
@@ -72,8 +72,8 @@ class LaporanPengelolaController extends GetxController {
 
   Future<void> _fetchMasterData() async {
     try {
-      final resKategori = await SupabaseService.client
-          .from(SupabaseConstants.tableKategoriSampah)
+      final resKategori = await LocalDataService.client
+          .from(DataTables.tableKategoriSampah)
           .select()
           .eq('is_active', true)
           .order('urutan');
@@ -81,8 +81,8 @@ class LaporanPengelolaController extends GetxController {
           .map((e) => KategoriModel.fromJson(e))
           .toList();
 
-      final resSubKategori = await SupabaseService.client
-          .from(SupabaseConstants.tableSubKategoriSampah)
+      final resSubKategori = await LocalDataService.client
+          .from(DataTables.tableSubKategoriSampah)
           .select()
           .eq('is_active', true)
           .order('urutan');
@@ -90,8 +90,8 @@ class LaporanPengelolaController extends GetxController {
           .map((e) => SubKategoriModel.fromJson(e))
           .toList();
 
-      final resTipe = await SupabaseService.client
-          .from(SupabaseConstants.tableTipeSampah)
+      final resTipe = await LocalDataService.client
+          .from(DataTables.tableTipeSampah)
           .select()
           .eq('is_active', true)
           .order('urutan');
@@ -99,8 +99,8 @@ class LaporanPengelolaController extends GetxController {
           .map((e) => TipeSampahModel.fromJson(e))
           .toList();
 
-      final resJenis = await SupabaseService.client
-          .from(SupabaseConstants.tableJenisSampah)
+      final resJenis = await LocalDataService.client
+          .from(DataTables.tableJenisSampah)
           .select()
           .eq('is_active', true)
           .order('urutan');
@@ -147,8 +147,8 @@ class LaporanPengelolaController extends GetxController {
     final bankSampahId = _bankSampahId;
     if (bankSampahId == null) return;
     try {
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaanSampah)
+      final data = await LocalDataService.client
+          .from(DataTables.tablePengelolaanSampah)
           .select('nama_nasabah')
           .eq('bank_sampah_id', bankSampahId);
 
@@ -174,8 +174,8 @@ class LaporanPengelolaController extends GetxController {
     final bankSampahId = _bankSampahId;
     if (bankSampahId == null) return [];
 
-    var query = SupabaseService.client
-        .from(SupabaseConstants.tablePengelolaanSampah)
+    var query = LocalDataService.client
+        .from(DataTables.tablePengelolaanSampah)
         .select('''
           *,
           kategori_sampah(*),

@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
-import '../../core/services/supabase_service.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/services/local_data_service.dart';
+import '../../core/constants/data_tables.dart';
 
 /// Model ringkasan satu bulan untuk rekap partisipasi wilayah.
 class RekapBulananItem {
@@ -102,8 +102,8 @@ class RekapBulananController extends GetxController {
 
   Future<void> _fetchSingkatanSatuanBerat() async {
     try {
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tableSatuan)
+      final data = await LocalDataService.client
+          .from(DataTables.tableSatuan)
           .select('id, singkatan');
       satuanBeratIds = (data as List)
           .where((e) =>
@@ -117,8 +117,8 @@ class RekapBulananController extends GetxController {
   }
 
   Future<void> _fetchDaftarBsu() async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableBankSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tableBankSampah)
         .select('id, nama')
         .eq('is_active', true)
         .order('nama');
@@ -137,8 +137,8 @@ class RekapBulananController extends GetxController {
         DateTime(now.year, now.month - (jumlahBulan - 1), 1);
     final end = DateTime(now.year, now.month + 1, 0);
 
-    var query = SupabaseService.client
-        .from(SupabaseConstants.tablePengelolaanSampah)
+    var query = LocalDataService.client
+        .from(DataTables.tablePengelolaanSampah)
         .select(
             'bank_sampah_id, jumlah, nama_nasabah, tanggal_pengelolaan, satuan_id')
         .gte('tanggal_pengelolaan', start.toIso8601String().split('T').first)

@@ -2,8 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../core/services/supabase_service.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/services/local_data_service.dart';
+import '../../core/constants/data_tables.dart';
 import '../../models/profile_model.dart';
 import '../../models/bank_sampah_model.dart';
 import '../../app/routes/app_routes.dart';
@@ -57,13 +57,17 @@ class PengelolaController extends GetxController {
 
   /// Nama BSU yang dikelola seorang pengelola, digabung "BSU A (RW 02), BSU B".
   String namaBsuPengelola(String profileId) {
-    final rows = relasiPengelola.where((r) => r['profile_id'] == profileId).toList();
+    final rows = relasiPengelola
+        .where((r) => r['profile_id'] == profileId)
+        .toList();
     if (rows.isEmpty) return '';
-    return rows.map((r) {
-      final nama = (r['nama'] as String?) ?? '-';
-      final rw = (r['rw'] as String?) ?? '';
-      return rw.isNotEmpty ? '$nama (RW $rw)' : nama;
-    }).join(', ');
+    return rows
+        .map((r) {
+          final nama = (r['nama'] as String?) ?? '-';
+          final rw = (r['rw'] as String?) ?? '';
+          return rw.isNotEmpty ? '$nama (RW $rw)' : nama;
+        })
+        .join(', ');
   }
 
   /// Total ton yang diinput pengelola (kg → ton, 1 desimal).
@@ -129,18 +133,19 @@ class PengelolaController extends GetxController {
   /// Ambil relasi profile ↔ bank_sampah (dengan nama BSU) untuk semua pengelola.
   Future<void> _fetchRelasi() async {
     try {
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaBankSampah)
+      final data = await LocalDataService.client
+          .from(DataTables.tablePengelolaBankSampah)
           .select('profile_id, bank_sampah_id, bank_sampah(nama, rw, rt)');
       relasiPengelola.value = (data as List)
-          .map((e) => {
-                'profile_id': e['profile_id'],
-                'bank_sampah_id': e['bank_sampah_id'],
-                'nama':
-                    ((e['bank_sampah'] as Map?)?['nama'] as String?) ?? '-',
-                'rw': ((e['bank_sampah'] as Map?)?['rw'] as String?) ?? '',
-                'rt': ((e['bank_sampah'] as Map?)?['rt'] as String?) ?? '',
-              })
+          .map(
+            (e) => {
+              'profile_id': e['profile_id'],
+              'bank_sampah_id': e['bank_sampah_id'],
+              'nama': ((e['bank_sampah'] as Map?)?['nama'] as String?) ?? '-',
+              'rw': ((e['bank_sampah'] as Map?)?['rw'] as String?) ?? '',
+              'rt': ((e['bank_sampah'] as Map?)?['rt'] as String?) ?? '',
+            },
+          )
           .toList();
     } catch (e) {
       debugPrint('Pengelola relasi warning: $e');
@@ -157,15 +162,16 @@ class PengelolaController extends GetxController {
           .toSet();
       if (bsuIds.isEmpty) return;
 
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaanSampah)
+      final data = await LocalDataService.client
+          .from(DataTables.tablePengelolaanSampah)
           .select('bank_sampah_id, jumlah, satuan(singkatan)')
           .inFilter('bank_sampah_id', bsuIds.toList());
 
       final kgPerBsu = <String, double>{};
       for (final row in (data as List)) {
         final singkatan =
-            ((row['satuan'] as Map?)?['singkatan'] as String?)?.toLowerCase() ?? '';
+            ((row['satuan'] as Map?)?['singkatan'] as String?)?.toLowerCase() ??
+            '';
         if (singkatan != 'kg') continue;
         final jml = row['jumlah'];
         final kg = jml is num ? jml.toDouble() : double.tryParse('$jml') ?? 0.0;
@@ -188,8 +194,8 @@ class PengelolaController extends GetxController {
   }
 
   Future<void> _fetchPengelola() async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableProfiles)
+    final data = await LocalDataService.client
+        .from(DataTables.tableProfiles)
         .select()
         .eq('role', 'pengelola')
         .order('nama_lengkap');
@@ -200,20 +206,22 @@ class PengelolaController extends GetxController {
   }
 
   Future<void> _fetchBankSampah() async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableBankSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tableBankSampah)
         .select()
         .eq('is_active', true)
         .order('nama');
-    listBankSampah.value =
-        (data as List).map((e) => BankSampahModel.fromJson(e)).toList();
+    listBankSampah.value = (data as List)
+        .map((e) => BankSampahModel.fromJson(e))
+        .toList();
   }
 
-  Future<List<String>> getBankSampahPengelola(String profileId) async {      final data = await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaBankSampah)
-          .select('profile_id, bank_sampah_id')
-          .eq('profile_id', profileId);
-      return (data as List).map((e) => e['bank_sampah_id'] as String).toList();
+  Future<List<String>> getBankSampahPengelola(String profileId) async {
+    final data = await LocalDataService.client
+        .from(DataTables.tablePengelolaBankSampah)
+        .select('profile_id, bank_sampah_id')
+        .eq('profile_id', profileId);
+    return (data as List).map((e) => e['bank_sampah_id'] as String).toList();
   }
 
   void goToForm() => Get.toNamed(AppRoutes.formPengelola);
@@ -235,8 +243,8 @@ class PengelolaController extends GetxController {
     isApprovingId.value = profileId;
     try {
       // 1. Hapus relasi lama (jika ada)
-      await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaBankSampah)
+      await LocalDataService.client
+          .from(DataTables.tablePengelolaBankSampah)
           .delete()
           .eq('profile_id', profileId);
 
@@ -244,13 +252,13 @@ class PengelolaController extends GetxController {
       final relasi = bankSampahIds
           .map((bsId) => {'profile_id': profileId, 'bank_sampah_id': bsId})
           .toList();
-      await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaBankSampah)
+      await LocalDataService.client
+          .from(DataTables.tablePengelolaBankSampah)
           .insert(relasi);
 
       // 3. Set verified + kosongkan bank_sampah_pilihan
-      await SupabaseService.client
-          .from(SupabaseConstants.tableProfiles)
+      await LocalDataService.client
+          .from(DataTables.tableProfiles)
           .update({'is_verified': true, 'bank_sampah_pilihan': []})
           .eq('id', profileId);
 
@@ -271,8 +279,8 @@ class PengelolaController extends GetxController {
   Future<void> tolakPengelola(String profileId) async {
     isApprovingId.value = profileId;
     try {
-      final profileData = await SupabaseService.client
-          .from(SupabaseConstants.tableProfiles)
+      final profileData = await LocalDataService.client
+          .from(DataTables.tableProfiles)
           .select('auth_user_id')
           .eq('id', profileId)
           .single();
@@ -281,7 +289,7 @@ class PengelolaController extends GetxController {
 
       bool deletedViaFunction = false;
       try {
-        final response = await SupabaseService.client.functions.invoke(
+        final response = await LocalDataService.client.functions.invoke(
           'delete-pengelola',
           body: {'auth_user_id': authUserId, 'profile_id': profileId},
         );
@@ -289,10 +297,10 @@ class PengelolaController extends GetxController {
         if (response.status == 200) {
           deletedViaFunction = true;
         } else {
-          final errorMsg = (response.data is Map)
-              ? (response.data['error'] ?? response.data['message'])
-              : response.data?.toString();
-          debugPrint('Edge Function tolak gagal: ${errorMsg ?? response.status}');
+          final errorMsg = response.data['error'] ?? response.data['message'];
+          debugPrint(
+            'Edge Function tolak gagal: ${errorMsg ?? response.status}',
+          );
         }
       } catch (e) {
         debugPrint('Edge Function tolak error: $e');
@@ -301,14 +309,13 @@ class PengelolaController extends GetxController {
       // Fallback: Coba hapus via PostgreSQL RPC jika Edge Function gagal/tidak aktif
       if (!deletedViaFunction) {
         try {
-          final rpcResponse = await SupabaseService.client.rpc(
+          final rpcResponse = await LocalDataService.client.rpc(
             'delete_pengelola_account',
-            params: {
-              'p_auth_user_id': authUserId,
-              'p_profile_id': profileId,
-            },
+            params: {'p_auth_user_id': authUserId, 'p_profile_id': profileId},
           );
-          if (rpcResponse != null && rpcResponse is Map && rpcResponse['status'] == 'success') {
+          if (rpcResponse != null &&
+              rpcResponse is Map &&
+              rpcResponse['status'] == 'success') {
             deletedViaFunction = true;
           }
         } catch (rpcErr) {
@@ -319,14 +326,14 @@ class PengelolaController extends GetxController {
       // Fallback 2: Hapus langsung dari database public schema saja jika RPC & Edge Function gagal
       if (!deletedViaFunction) {
         // Hapus relasi jika ada (opsional tapi aman)
-        await SupabaseService.client
-            .from(SupabaseConstants.tablePengelolaBankSampah)
+        await LocalDataService.client
+            .from(DataTables.tablePengelolaBankSampah)
             .delete()
             .eq('profile_id', profileId);
 
         // Hapus profile
-        await SupabaseService.client
-            .from(SupabaseConstants.tableProfiles)
+        await LocalDataService.client
+            .from(DataTables.tableProfiles)
             .delete()
             .eq('id', profileId);
       }
@@ -353,7 +360,7 @@ class PengelolaController extends GetxController {
     try {
       bool createdViaFunction = false;
       try {
-        final response = await SupabaseService.client.functions.invoke(
+        final response = await LocalDataService.client.functions.invoke(
           'create-pengelola',
           body: {
             'email': emailController.text.trim(),
@@ -369,10 +376,10 @@ class PengelolaController extends GetxController {
         if (response.status == 200) {
           createdViaFunction = true;
         } else {
-          final errorMsg = (response.data is Map)
-              ? (response.data['error'] ?? response.data['message'])
-              : response.data?.toString();
-          debugPrint('Edge Function tambah gagal: ${errorMsg ?? response.status}');
+          final errorMsg = response.data['error'] ?? response.data['message'];
+          debugPrint(
+            'Edge Function tambah gagal: ${errorMsg ?? response.status}',
+          );
         }
       } catch (e) {
         debugPrint('Edge Function tambah error: $e');
@@ -381,7 +388,7 @@ class PengelolaController extends GetxController {
       // Fallback: Panggil PostgreSQL RPC jika Edge Function tidak dapat dijangkau
       if (!createdViaFunction) {
         debugPrint('Mencoba membuat akun pengelola via RPC...');
-        final rpcResponse = await SupabaseService.client.rpc(
+        final rpcResponse = await LocalDataService.client.rpc(
           'create_pengelola_account',
           params: {
             'p_email': emailController.text.trim(),
@@ -398,7 +405,9 @@ class PengelolaController extends GetxController {
           if (rpcResponse['status'] == 'success') {
             createdViaFunction = true;
           } else {
-            throw Exception(rpcResponse['message'] ?? 'Gagal membuat akun via RPC');
+            throw Exception(
+              rpcResponse['message'] ?? 'Gagal membuat akun via RPC',
+            );
           }
         } else {
           throw Exception('Gagal membuat akun via RPC: respon tidak valid');
@@ -422,8 +431,8 @@ class PengelolaController extends GetxController {
   ) async {
     isSaving.value = true;
     try {
-      await SupabaseService.client
-          .from(SupabaseConstants.tablePengelolaBankSampah)
+      await LocalDataService.client
+          .from(DataTables.tablePengelolaBankSampah)
           .delete()
           .eq('profile_id', profileId);
 
@@ -431,17 +440,17 @@ class PengelolaController extends GetxController {
         final relasi = bankSampahIds
             .map((bsId) => {'profile_id': profileId, 'bank_sampah_id': bsId})
             .toList();
-        await SupabaseService.client
-            .from(SupabaseConstants.tablePengelolaBankSampah)
+        await LocalDataService.client
+            .from(DataTables.tablePengelolaBankSampah)
             .insert(relasi);
 
-        await SupabaseService.client
-            .from(SupabaseConstants.tableProfiles)
+        await LocalDataService.client
+            .from(DataTables.tableProfiles)
             .update({'is_verified': true})
             .eq('id', profileId);
       } else {
-        await SupabaseService.client
-            .from(SupabaseConstants.tableProfiles)
+        await LocalDataService.client
+            .from(DataTables.tableProfiles)
             .update({'is_verified': false})
             .eq('id', profileId);
       }
@@ -458,8 +467,8 @@ class PengelolaController extends GetxController {
   // ─── Hapus pengelola ──────────────────────────────────────────────────────────
   Future<void> hapusPengelola(String profileId) async {
     try {
-      final profileData = await SupabaseService.client
-          .from(SupabaseConstants.tableProfiles)
+      final profileData = await LocalDataService.client
+          .from(DataTables.tableProfiles)
           .select('auth_user_id')
           .eq('id', profileId)
           .single();
@@ -468,7 +477,7 @@ class PengelolaController extends GetxController {
 
       bool deletedViaFunction = false;
       try {
-        final response = await SupabaseService.client.functions.invoke(
+        final response = await LocalDataService.client.functions.invoke(
           'delete-pengelola',
           body: {'auth_user_id': authUserId, 'profile_id': profileId},
         );
@@ -476,10 +485,10 @@ class PengelolaController extends GetxController {
         if (response.status == 200) {
           deletedViaFunction = true;
         } else {
-          final errorMsg = (response.data is Map)
-              ? (response.data['error'] ?? response.data['message'])
-              : response.data?.toString();
-          debugPrint('Edge Function hapus gagal: ${errorMsg ?? response.status}');
+          final errorMsg = response.data['error'] ?? response.data['message'];
+          debugPrint(
+            'Edge Function hapus gagal: ${errorMsg ?? response.status}',
+          );
         }
       } catch (e) {
         debugPrint('Edge Function hapus error: $e');
@@ -488,14 +497,13 @@ class PengelolaController extends GetxController {
       // Fallback: Coba hapus via PostgreSQL RPC jika Edge Function gagal/tidak aktif
       if (!deletedViaFunction) {
         try {
-          final rpcResponse = await SupabaseService.client.rpc(
+          final rpcResponse = await LocalDataService.client.rpc(
             'delete_pengelola_account',
-            params: {
-              'p_auth_user_id': authUserId,
-              'p_profile_id': profileId,
-            },
+            params: {'p_auth_user_id': authUserId, 'p_profile_id': profileId},
           );
-          if (rpcResponse != null && rpcResponse is Map && rpcResponse['status'] == 'success') {
+          if (rpcResponse != null &&
+              rpcResponse is Map &&
+              rpcResponse['status'] == 'success') {
             deletedViaFunction = true;
           }
         } catch (rpcErr) {
@@ -506,14 +514,14 @@ class PengelolaController extends GetxController {
       // Fallback 2: Hapus langsung dari database public schema saja jika RPC & Edge Function gagal
       if (!deletedViaFunction) {
         // Hapus relasi di pengelola_bank_sampah
-        await SupabaseService.client
-            .from(SupabaseConstants.tablePengelolaBankSampah)
+        await LocalDataService.client
+            .from(DataTables.tablePengelolaBankSampah)
             .delete()
             .eq('profile_id', profileId);
 
         // Hapus profile
-        await SupabaseService.client
-            .from(SupabaseConstants.tableProfiles)
+        await LocalDataService.client
+            .from(DataTables.tableProfiles)
             .delete()
             .eq('id', profileId);
       }

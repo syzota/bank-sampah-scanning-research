@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
-import '../../core/services/supabase_service.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/services/local_data_service.dart';
+import '../../core/constants/data_tables.dart';
 import '../../core/services/session_service.dart';
 import '../../models/bank_sampah_model.dart';
 import '../../app/routes/app_routes.dart';
@@ -113,8 +113,8 @@ class DashboardKelurahanController extends GetxController {
   }
 
   Future<void> _fetchStatistikBankSampah() async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableBankSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tableBankSampah)
         .select();
 
     final list =
@@ -128,8 +128,8 @@ class DashboardKelurahanController extends GetxController {
     final startStr = selectedStartDate.value.toIso8601String().split('T').first;
     final endStr = selectedEndDate.value.toIso8601String().split('T').first;
 
-    var query = SupabaseService.client
-        .from(SupabaseConstants.tablePengelolaanSampah)
+    var query = LocalDataService.client
+        .from(DataTables.tablePengelolaanSampah)
         .select('''
           jumlah,
           total_harga,
@@ -196,8 +196,8 @@ class DashboardKelurahanController extends GetxController {
     final startStr = selectedStartDate.value.toIso8601String().split('T').first;
     final endStr = selectedEndDate.value.toIso8601String().split('T').first;
 
-    var query = SupabaseService.client
-        .from(SupabaseConstants.tablePengelolaanSampah)
+    var query = LocalDataService.client
+        .from(DataTables.tablePengelolaanSampah)
         .select('''
           jumlah,
           total_harga,
@@ -243,8 +243,8 @@ class DashboardKelurahanController extends GetxController {
     final firstDayLastMonth = DateTime(now.year, now.month - 1, 1);
     final lastDayLastMonth = DateTime(now.year, now.month, 0);
 
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tablePengelolaanSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tablePengelolaanSampah)
         .select('jumlah')
         .gte('tanggal_pengelolaan',
             firstDayLastMonth.toIso8601String().split('T').first)
@@ -262,8 +262,8 @@ class DashboardKelurahanController extends GetxController {
     final startStr = selectedStartDate.value.toIso8601String().split('T').first;
     final endStr = selectedEndDate.value.toIso8601String().split('T').first;
 
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tablePengelolaanSampah)
+    final data = await LocalDataService.client
+        .from(DataTables.tablePengelolaanSampah)
         .select('jumlah, bank_sampah(nama)')
         .gte('tanggal_pengelolaan', startStr)
         .lte('tanggal_pengelolaan', endStr);

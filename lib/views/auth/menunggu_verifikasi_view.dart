@@ -6,9 +6,9 @@ import '../../app/themes/app_colors.dart';
 import '../../app/themes/app_text_styles.dart';
 import '../../app/themes/app_theme.dart';
 import '../../controllers/auth_controller.dart';
-import '../../core/constants/supabase_constants.dart';
+import '../../core/constants/data_tables.dart';
 import '../../core/services/session_service.dart';
-import '../../core/services/supabase_service.dart';
+import '../../core/services/local_data_service.dart';
 import '../../core/widgets/app_widgets.dart';
 import '../../core/widgets/motion.dart';
 import '../../models/profile_model.dart';
@@ -29,8 +29,8 @@ class _MenungguVerifikasiViewState extends State<MenungguVerifikasiView> {
 
     setState(() => _isChecking = true);
     try {
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tableProfiles)
+      final data = await LocalDataService.client
+          .from(DataTables.tableProfiles)
           .select()
           .eq('auth_user_id', authUserId)
           .single();

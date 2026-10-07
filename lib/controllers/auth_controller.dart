@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../core/services/local_errors.dart';
 
-import '../core/services/supabase_service.dart';
+import '../core/services/local_data_service.dart';
 import '../core/services/session_service.dart';
-import '../core/constants/supabase_constants.dart';
+import '../core/constants/data_tables.dart';
 import '../models/profile_model.dart';
 import '../models/bank_sampah_model.dart';
 import '../app/routes/app_routes.dart';
@@ -21,8 +21,11 @@ class AuthController extends GetxController {
   final forgotPasswordFormKey = GlobalKey<FormState>();
 
   // Text controllers — login
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final emailController =
+      TextEditingController(text: 'pengurus@demo.local');
+
+  final passwordController =
+      TextEditingController(text: 'penelitian123');
 
   // Text controllers — register
   final regNamaController = TextEditingController();
@@ -59,8 +62,8 @@ class AuthController extends GetxController {
     if (!force && listBankSampahRegister.isNotEmpty) return; // sudah dimuat
     isLoadingBankSampah.value = true;
     try {
-      final data = await SupabaseService.client
-          .from(SupabaseConstants.tableBankSampah)
+      final data = await LocalDataService.client
+          .from(DataTables.tableBankSampah)
           .select()
           .eq('is_active', true)
           .order('nama');
@@ -80,7 +83,7 @@ class AuthController extends GetxController {
 
     isLoading.value = true;
     try {
-      final response = await SupabaseService.client.auth.signInWithPassword(
+      final response = await LocalDataService.client.auth.signInWithPassword(
         email: emailController.text.trim(),
         password: passwordController.text,
       );
@@ -91,10 +94,10 @@ class AuthController extends GetxController {
       }
 
       await _loadProfileAndNavigate(response.user!.id);
-    } on AuthException catch (e) {
+    } on LocalAuthException catch (e) {
       _showError(_mapAuthError(e.message));
     } catch (e) {
-      _showError('Gagal terhubung ke server. Periksa koneksi internet kamu.');
+      _showError('Gagal membuka akun lokal: $e');
     } finally {
       isLoading.value = false;
     }
@@ -106,7 +109,7 @@ class AuthController extends GetxController {
 
     isLoading.value = true;
     try {
-      final response = await SupabaseService.client.auth.signUp(
+      final response = await LocalDataService.client.auth.signUp(
         email: regEmailController.text.trim(),
         password: regPasswordController.text,
       );
@@ -119,8 +122,8 @@ class AuthController extends GetxController {
       final userId = response.user!.id;
 
       try {
-        final inserted = await SupabaseService.client
-            .from(SupabaseConstants.tableProfiles)
+        final inserted = await LocalDataService.client
+            .from(DataTables.tableProfiles)
             .insert({
               'auth_user_id': userId,
               'nama_lengkap': regNamaController.text.trim(),
@@ -137,21 +140,21 @@ class AuthController extends GetxController {
 
         final profile = ProfileModel.fromJson(inserted);
         SessionService.to.setProfile(profile);
-      } on PostgrestException catch (e) {
-        await SupabaseService.client.auth.signOut();
+      } on LocalDataException catch (e) {
+        await LocalDataService.client.auth.signOut();
         _showError('Gagal simpan profil: [${e.code}] ${e.message}');
         return;
       } catch (profileError) {
-        await SupabaseService.client.auth.signOut();
+        await LocalDataService.client.auth.signOut();
         _showError('Gagal simpan profil: $profileError');
         return;
       }
 
       Get.offAllNamed(AppRoutes.menungguVerifikasi);
-    } on AuthException catch (e) {
+    } on LocalAuthException catch (e) {
       _showError(_mapAuthError(e.message));
     } catch (e) {
-      _showError('Registrasi gagal. Periksa koneksi internet kamu.');
+      _showError('Registrasi lokal gagal: $e');
     } finally {
       isLoading.value = false;
     }
@@ -161,7 +164,7 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     isLoading.value = true;
     try {
-      await SupabaseService.client.auth.signOut();
+      await LocalDataService.client.auth.signOut();
       Get.offAllNamed(AppRoutes.login);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         SessionService.to.clearSession();
@@ -175,8 +178,8 @@ class AuthController extends GetxController {
 
   // ─── Load profile & navigasi sesuai role & status verifikasi ─────────────────
   Future<void> _loadProfileAndNavigate(String authUserId) async {
-    final data = await SupabaseService.client
-        .from(SupabaseConstants.tableProfiles)
+    final data = await LocalDataService.client
+        .from(DataTables.tableProfiles)
         .select()
         .eq('auth_user_id', authUserId)
         .single();
@@ -280,18 +283,20 @@ class AuthController extends GetxController {
                           label: 'Kirim',
                           isLoading: isResetting.value,
                           onPressed: () async {
-                            if (!forgotPasswordFormKey.currentState!.validate()) return;
-                            
+                            if (!forgotPasswordFormKey.currentState!.validate())
+                              return;
+
                             isResetting.value = true;
                             try {
-                              await SupabaseService.client.auth.resetPasswordForEmail(
-                                forgotEmailController.text.trim(),
-                              );
+                              await LocalDataService.client.auth
+                                  .resetPasswordForEmail(
+                                    forgotEmailController.text.trim(),
+                                  );
                               Get.back();
                               AppSnackbar.success(
                                 'Email reset password telah dikirim. Periksa inbox kamu.',
                               );
-                            } on AuthException catch (e) {
+                            } on LocalAuthException catch (e) {
                               AppSnackbar.error(
                                 _mapResetPasswordError(e.message),
                               );

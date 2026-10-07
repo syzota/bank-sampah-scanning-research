@@ -1,0 +1,235 @@
+{
+  "auth_users": [
+    {
+      "id": "demo-user-pengurus",
+      "email": "pengurus@demo.local",
+      "password_hash": "491c8cadda5f76182434b7c4c8cd38d4a810d1d1ffb54a23dd1c6907a3de686d"
+    },
+    {
+      "id": "demo-user-kelurahan",
+      "email": "kelurahan@demo.local",
+      "password_hash": "8a4e6c38a0eb2feea9e32c03eafb9d1711021027380712d1bcee7a9c4665310d"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "demo-profile-pengurus",
+      "auth_user_id": "demo-user-pengurus",
+      "nama_lengkap": "Pengurus Penelitian",
+      "no_hp": "",
+      "role": "pengelola",
+      "is_verified": 1,
+      "bank_sampah_pilihan": "[]",
+      "created_at": "2026-10-03T00:00:00.000Z",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "id": "demo-profile-kelurahan",
+      "auth_user_id": "demo-user-kelurahan",
+      "nama_lengkap": "Kelurahan Demo",
+      "no_hp": "",
+      "role": "kelurahan",
+      "is_verified": 1,
+      "bank_sampah_pilihan": "[]",
+      "created_at": "2026-10-03T00:00:00.000Z",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    }
+  ],
+  "bank_sampah": [
+    {
+      "id": "research-bank",
+      "nama": "Bank Sampah Penelitian",
+      "alamat": "Alamat simulasi penelitian",
+      "rt": "01",
+      "rw": "01",
+      "jam_operasional": "Jadwal simulasi",
+      "latitude": null,
+      "longitude": null,
+      "is_active": 1,
+      "created_at": "2026-10-03T00:00:00.000Z",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    }
+  ],
+  "pengelola_bank_sampah": [
+    {
+      "id": "demo-assignment",
+      "profile_id": "demo-profile-pengurus",
+      "bank_sampah_id": "research-bank",
+      "created_at": "2026-10-03T00:00:00.000Z"
+    }
+  ],
+  "kategori_sampah": [
+    {
+      "id": "research-category",
+      "nama": "Sampah Penelitian",
+      "deskripsi": "Enam kelas sesuai model. Data simulasi penelitian.",
+      "urutan": 0,
+      "is_active": 1,
+      "created_at": "2026-10-03T00:00:00.000Z",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    }
+  ],
+  "satuan": [
+    {
+      "id": "research-unit-kg",
+      "nama": "Kilogram",
+      "singkatan": "kg",
+      "created_at": "2026-10-03T00:00:00.000Z",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    }
+  ],
+  "jenis_sampah": [
+    {
+      "id": "research-cardboard",
+      "kategori_id": "research-category",
+      "sub_kategori_id": null,
+      "tipe_id": null,
+      "nama": "Kardus",
+      "model_label": "cardboard",
+      "deskripsi": "Kelas model cardboard",
+      "satuan_default_id": "research-unit-kg",
+      "urutan": 0,
+      "is_active": 1,
+      "created_at": "2026-10-03T00:00:00.000Z",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "id": "research-glass",
+      "kategori_id": "research-category",
+      "sub_kategori_id": null,
+      "tipe_id": null,
+      "nama": "Kaca",
+      "model_label": "glass",
+      "deskripsi": "Kelas model glass",
+      "satuan_default_id": "research-unit-kg",
+      "urutan": 1,
+      "is_active": 1,
+      "created_at": "2026-10-03T00:00:00.000Z",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "id": "research-metal",
+      "kategori_id": "research-category",
+      "sub_kategori_id": null,
+      "tipe_id": null,
+      "nama": "Logam",
+      "model_label": "metal",
+      "deskripsi": "Kelas model metal",
+      "satuan_default_id": "research-unit-kg",
+      "urutan": 2,
+      "is_active": 1,
+      "created_at": "2026-10-03T00:00:00.000Z",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "id": "research-paper",
+      "kategori_id": "research-category",
+      "sub_kategori_id": null,
+      "tipe_id": null,
+      "nama": "Kertas",
+      "model_label": "paper",
+      "deskripsi": "Kelas model paper",
+      "satuan_default_id": "research-unit-kg",
+      "urutan": 3,
+      "is_active": 1,
+      "created_at": "2026-10-03T00:00:00.000Z",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "id": "research-plastic",
+      "kategori_id": "research-category",
+      "sub_kategori_id": null,
+      "tipe_id": null,
+      "nama": "Plastik",
+      "model_label": "plastic",
+      "deskripsi": "Kelas model plastic",
+      "satuan_default_id": "research-unit-kg",
+      "urutan": 4,
+      "is_active": 1,
+      "created_at": "2026-10-03T00:00:00.000Z",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "id": "research-trash",
+      "kategori_id": "research-category",
+      "sub_kategori_id": null,
+      "tipe_id": null,
+      "nama": "Sampah lainnya/residu",
+      "model_label": "trash",
+      "deskripsi": "Kelas model trash",
+      "satuan_default_id": "research-unit-kg",
+      "urutan": 5,
+      "is_active": 1,
+      "created_at": "2026-10-03T00:00:00.000Z",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    }
+  ],
+  "harga_sampah": [
+    {
+      "id": "research-price-cardboard",
+      "bank_sampah_id": "research-bank",
+      "kategori_id": "research-category",
+      "sub_kategori_id": null,
+      "tipe_id": null,
+      "jenis_sampah_id": "research-cardboard",
+      "harga_per_satuan": 2000,
+      "satuan_id": "research-unit-kg",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "id": "research-price-glass",
+      "bank_sampah_id": "research-bank",
+      "kategori_id": "research-category",
+      "sub_kategori_id": null,
+      "tipe_id": null,
+      "jenis_sampah_id": "research-glass",
+      "harga_per_satuan": 1000,
+      "satuan_id": "research-unit-kg",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "id": "research-price-metal",
+      "bank_sampah_id": "research-bank",
+      "kategori_id": "research-category",
+      "sub_kategori_id": null,
+      "tipe_id": null,
+      "jenis_sampah_id": "research-metal",
+      "harga_per_satuan": 5000,
+      "satuan_id": "research-unit-kg",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "id": "research-price-paper",
+      "bank_sampah_id": "research-bank",
+      "kategori_id": "research-category",
+      "sub_kategori_id": null,
+      "tipe_id": null,
+      "jenis_sampah_id": "research-paper",
+      "harga_per_satuan": 1500,
+      "satuan_id": "research-unit-kg",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "id": "research-price-plastic",
+      "bank_sampah_id": "research-bank",
+      "kategori_id": "research-category",
+      "sub_kategori_id": null,
+      "tipe_id": null,
+      "jenis_sampah_id": "research-plastic",
+      "harga_per_satuan": 3000,
+      "satuan_id": "research-unit-kg",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "id": "research-price-trash",
+      "bank_sampah_id": "research-bank",
+      "kategori_id": "research-category",
+      "sub_kategori_id": null,
+      "tipe_id": null,
+      "jenis_sampah_id": "research-trash",
+      "harga_per_satuan": 0,
+      "satuan_id": "research-unit-kg",
+      "updated_at": "2026-10-03T00:00:00.000Z"
+    }
+  ]
+}
