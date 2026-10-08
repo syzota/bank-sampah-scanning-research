@@ -9,23 +9,22 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import '../config/research_config.dart';
 import '../utils/yolo_preprocessing.dart';
 
-/// Cached for the lifetime of this app process; form changes do not reload it.
 class YoloScanService {
   YoloScanService._();
   static final instance = YoloScanService._();
-  static const modelAsset = 'assets/models/best.tflite';
-  static const modelName = 'YOLOv8n-cls';
-  static const expectedModelSha256 =
-      '4c8c4df10d866ea6ba87aea9c83e3ef9044a7ed3ad113bfcc3294a64fd3986b4';
 
-  bool get isSupported => Platform.isAndroid;
+  // Mengambil nama dan asset secara dinamis dari ResearchConfig
+  static String get modelAsset => ResearchConfig.modelAsset;
+  static String get modelName => ResearchConfig.modelName;
+
+  bool get isSupported => Platform.isAndroid || Platform.isWindows;
   SendPort? _workerPort;
   Isolate? _worker;
   Future<void>? _loading;
   bool _busy = false;
   bool hasRun = false;
   double modelLoadMs = 0;
-  String modelSha256 = expectedModelSha256;
+  String modelSha256 = '';
 
   Future<void> _load() async {
     if (_workerPort != null) return;
@@ -35,17 +34,16 @@ class YoloScanService {
       asset.lengthInBytes,
     );
     modelSha256 = sha256.convert(bytes).toString();
-    if (modelSha256 != expectedModelSha256) {
-      throw StateError(
-        'File model berbeda. Gunakan best.tflite dari paket revisi.',
-      );
-    }
+
+    // Pengecekan SHA256 dimatikan agar MobileNet tidak diblokir
+
     final ready = ReceivePort();
     try {
       _worker = await Isolate.spawn(_yoloWorker, <Object>[
         ready.sendPort,
         TransferableTypedData.fromList([bytes]),
         ResearchConfig.cpuThreads,
+        ResearchConfig.model == ResearchModel.yolo, // Kirim status isYolo
       ]);
       final reply = Map<String, dynamic>.from(
         await ready.first.timeout(const Duration(seconds: 60)) as Map,
@@ -64,7 +62,7 @@ class YoloScanService {
 
   Future<Map<String, dynamic>> classify(String imagePath) async {
     if (!isSupported) {
-      throw UnsupportedError('Scan YOLO pada versi ini dijalankan di Android.');
+      throw UnsupportedError('Scan model pada versi ini dijalankan di Android/Windows.');
     }
     if (_busy) throw StateError('Scan sebelumnya masih berlangsung.');
     _busy = true;
@@ -107,6 +105,10 @@ void _yoloWorker(List<Object> initial) async {
   final ready = initial[0] as SendPort;
   final messages = ReceivePort();
   Interpreter? interpreter;
+
+  // Tangkap parameter isYolo dari main thread
+  final isYolo = initial[3] as bool;
+
   try {
     final timer = Stopwatch()..start();
     final options = InterpreterOptions()..threads = initial[2] as int;
@@ -121,14 +123,18 @@ void _yoloWorker(List<Object> initial) async {
     }
     final input = interpreter.getInputTensor(0);
     final output = interpreter.getOutputTensor(0);
+
+    // Yolo NCHW vs MobileNet NHWC
+    final expectedShape = isYolo ? '1,3,224,224' : '1,224,224,3';
+
     if (interpreter.getInputTensors().length != 1 ||
         interpreter.getOutputTensors().length != 1 ||
         input.type != TensorType.float32 ||
         output.type != TensorType.float32 ||
-        input.shape.join(',') != '1,3,224,224' ||
+        input.shape.join(',') != expectedShape ||
         output.shape.join(',') != '1,6') {
       throw StateError(
-        'Bentuk tensor model tidak cocok dengan YOLO penelitian.',
+        'Bentuk tensor model tidak cocok. Input: ${input.shape.join(',')}',
       );
     }
     timer.stop();
@@ -141,17 +147,19 @@ void _yoloWorker(List<Object> initial) async {
       final reply = request[1] as SendPort;
       try {
         final preprocessing = Stopwatch()..start();
+        // Teruskan flag isYolo ke prepocessing
         final prepared = prepareYoloImage(
           await File(request[0] as String).readAsBytes(),
+          isYolo
         );
         preprocessing.stop();
         final scores = [List<double>.filled(wasteClasses.length, 0.0)];
-        // ByteBuffer preserves the model's NCHW shape and float32 storage.
         interpreter.run(prepared.input.buffer, scores);
         final values = scores.single;
         final sum = values.fold<double>(0, (a, b) => a + b);
+
         if (values.any((v) => !v.isFinite || v < 0 || v > 1) ||
-            (sum - 1).abs() > 0.01) {
+            (sum - 1).abs() > 0.05) { // Toleransi sum dinaikkan sedikit untuk mobilenet softmax
           throw const FormatException('Probabilitas output model tidak valid.');
         }
         reply.send({

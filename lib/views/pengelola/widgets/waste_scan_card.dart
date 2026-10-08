@@ -31,7 +31,7 @@ class WasteScanCard extends StatelessWidget {
         indices.sort((a, b) => result.scores[b].compareTo(result.scores[a]));
       }
       return SectionCard(
-        title: 'Scan Sampah — YOLO',
+        title: 'Scan Sampah — MOBILENET V2',
         icon: Icons.document_scanner_outlined,
         iconColor: AppColors.pengelolaMain,
         iconBg: AppColors.pengelolaLight,

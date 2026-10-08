@@ -5,7 +5,7 @@ import 'package:image/image.dart' as img;
 
 const yoloImageSize = 224;
 const yoloPreprocessingVersion =
-    'rgb_exif_short224_pil_bilinear_center224_div255_nchw_v1';
+    'rgb_exif_short224_pil_bilinear_center224_div255_dynamic_v2';
 
 class PreparedYoloImage {
   final Float32List input;
@@ -13,9 +13,7 @@ class PreparedYoloImage {
   const PreparedYoloImage(this.input, this.previewPng);
 }
 
-/// YOLOv8n-cls: RGB, shortest edge 224, center crop, [0,1], NCHW.
-/// Bilinear downsampling includes antialiasing, as in Pillow/torchvision.
-PreparedYoloImage prepareYoloImage(Uint8List bytes) {
+PreparedYoloImage prepareYoloImage(Uint8List bytes, bool isYolo) {
   img.Image? decoded;
   try {
     decoded = img.decodeImage(bytes);
@@ -42,21 +40,31 @@ PreparedYoloImage prepareYoloImage(Uint8List bytes) {
     width: yoloImageSize,
     height: yoloImageSize,
   );
+
   const plane = yoloImageSize * yoloImageSize;
   final input = Float32List(3 * plane);
+
   for (var y = 0; y < yoloImageSize; y++) {
     for (var x = 0; x < yoloImageSize; x++) {
       final pixel = crop.getPixel(x, y);
       final index = y * yoloImageSize + x;
-      input[index] = pixel.r / 255.0;
-      input[plane + index] = pixel.g / 255.0;
-      input[2 * plane + index] = pixel.b / 255.0;
+
+      if (isYolo) {
+        // Format NCHW (YOLO)
+        input[index] = pixel.r / 255.0;
+        input[plane + index] = pixel.g / 255.0;
+        input[2 * plane + index] = pixel.b / 255.0;
+      } else {
+        // Format NHWC (MobileNet)
+        input[index * 3] = pixel.r / 255.0;
+        input[index * 3 + 1] = pixel.g / 255.0;
+        input[index * 3 + 2] = pixel.b / 255.0;
+      }
     }
   }
   return PreparedYoloImage(input, Uint8List.fromList(img.encodePng(crop)));
 }
 
-// torchvision uses Python's ties-to-even rounding for the crop offset.
 int _halfRoundEven(int difference) {
   final half = difference ~/ 2;
   return difference.isOdd && half.isOdd ? half + 1 : half;

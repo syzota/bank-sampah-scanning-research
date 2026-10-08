@@ -39,7 +39,7 @@ flutter:
     - assets/images/
     - assets/data/
     - assets/fonts/
-    - assets/models/best.tflite
+    - assets/models/mobnet_model_quantized.tflite
 
   fonts:
     - family: PlusJakartaSans
